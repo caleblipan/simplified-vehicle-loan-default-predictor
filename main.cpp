@@ -130,13 +130,101 @@ int main()
 
 	cout << "\nGINI(EmploymentType): " << giniSalaried * (double)(salaried / (salaried + selfEmployed)) + giniSelfEmployed * (double)(selfEmployed / (salaried + selfEmployed)) << "\n";
 
-	// Turn the 'Cost' variable to categorical data
-	// Below $60000
-	// Between $60000 and $70000
-	// Between $70000 and $80000
-	// Above $80000
+	// Find GINI(TotalLoan)
+	double between0to5 = 0;
+	double between5to10 = 0;
+	double between10to15 = 0;
+	for (int i = 0; i < 20; i++)
+	{
+		std::stringstream lineStream(parsedCsv[i][3]);
+		// Index 3 is total loans
+		if (stoi(parsedCsv[i][3]) >= 0 && stoi(parsedCsv[i][3]) < 5)
+			between0to5++;
+		else if (stoi(parsedCsv[i][3]) >= 5 && stoi(parsedCsv[i][3]) < 10)
+			between5to10++;
+		else
+			between10to15++;
+	}
 
-	// Find probabilities
+	double noDefaultGivenBetween0to5 = 0;
+	double defaultGivenBetween0to5 = 0;
+	double noDefaultGivenBetween5to10 = 0;
+	double defaultGivenBetween5to10 = 0;
+	double noDefaultGivenBetween10to15 = 0;
+	double defaultGivenBetween10to15 = 0;
+	for (int i = 0; i < 20; i++)
+	{
+		// Index 5 is default boolean
+		if (stoi(parsedCsv[i][3]) >= 0 && stoi(parsedCsv[i][3]) < 5 && parsedCsv[i][5] == "0")
+			noDefaultGivenBetween0to5++;
+		else if (stoi(parsedCsv[i][3]) >= 0 && stoi(parsedCsv[i][3]) < 5 && parsedCsv[i][5] == "1")
+			defaultGivenBetween0to5++;
+		else if (stoi(parsedCsv[i][3]) >= 5 && stoi(parsedCsv[i][3]) < 10 && parsedCsv[i][5] == "0")
+			noDefaultGivenBetween5to10++;
+		else if (stoi(parsedCsv[i][3]) >= 5 && stoi(parsedCsv[i][3]) < 10 && parsedCsv[i][5] == "1")
+			defaultGivenBetween5to10++;
+		else if (stoi(parsedCsv[i][3]) >= 10 && stoi(parsedCsv[i][3]) < 15 && parsedCsv[i][5] == "0")
+			noDefaultGivenBetween10to15++;
+		else if (stoi(parsedCsv[i][3]) >= 10 && stoi(parsedCsv[i][3]) < 15 && parsedCsv[i][5] == "1")
+			defaultGivenBetween10to15++;
+	}
 
+	cout << "\n================ TOTAL LOANS ======================";
+	cout << "\nP(noDefault|0<x<5): " << (double)(noDefaultGivenBetween0to5 / between0to5) << "\n";
+	cout << "P(default|0<x<5): " << (double)(defaultGivenBetween0to5 / between0to5) << "\n";
+	double giniBetween0to5 = 1 - (pow((double)(noDefaultGivenBetween0to5 / between0to5), 2) + pow((double)(defaultGivenBetween0to5 / between0to5), 2));
+	cout << "GINI(0<x<5): " << giniBetween0to5 << "\n";
+	cout << "\nP(noDefault|5<x<10): " << (double)(noDefaultGivenBetween5to10 / between5to10) << "\n";
+	cout << "P(default|5<x<10): " << (double)(defaultGivenBetween5to10 / between5to10) << "\n";
+	double giniBetween5to10 = 1 - (pow((double)(noDefaultGivenBetween5to10 / between5to10), 2) + pow((double)(defaultGivenBetween5to10 / between5to10), 2));
+	cout << "GINI(SelfEmployed): " << giniBetween5to10 << "\n";
+	cout << "\nP(noDefault|10<x<15): " << (double)(noDefaultGivenBetween10to15 / between10to15) << "\n";
+	cout << "P(default|10<x<15): " << (double)(defaultGivenBetween10to15 / between10to15) << "\n";
+	double giniBetween10to15 = 1 - (pow((double)(noDefaultGivenBetween10to15 / between10to15), 2) + pow((double)(defaultGivenBetween0to5 / between0to5), 2));
+	cout << "GINI(10<x<15): " << giniBetween10to15 << "\n";
+
+	cout << "\nGINI(TotalLoan): " << giniBetween0to5 * (double)(between0to5 / (between0to5 + between5to10 + between10to15)) + giniBetween5to10 * (double)(between5to10 / (between0to5 + between5to10 + between10to15)) + giniBetween10to15 * (double)(between10to15 / (between0to5 + between5to10 + between10to15)) << "\n";
+
+	// Find GINI(ActiveLoan)
+	between0to5 = 0;
+	between5to10 = 0;
+	for (int i = 0; i < 20; i++)
+	{
+		std::stringstream lineStream(parsedCsv[i][3]);
+		// Index 4 is active loans
+		if (stoi(parsedCsv[i][4]) >= 0 && stoi(parsedCsv[i][4]) < 5)
+			between0to5++;
+		else if (stoi(parsedCsv[i][4]) >= 5 && stoi(parsedCsv[i][4]) < 10)
+			between5to10++;
+	}
+
+	noDefaultGivenBetween0to5 = 0;
+	defaultGivenBetween0to5 = 0;
+	noDefaultGivenBetween5to10 = 0;
+	defaultGivenBetween5to10 = 0;
+	for (int i = 0; i < 20; i++)
+	{
+		// Index 5 is default boolean
+		if (stoi(parsedCsv[i][4]) >= 0 && stoi(parsedCsv[i][4]) < 5 && parsedCsv[i][5] == "0")
+			noDefaultGivenBetween0to5++;
+		else if (stoi(parsedCsv[i][4]) >= 0 && stoi(parsedCsv[i][4]) < 5 && parsedCsv[i][5] == "1")
+			defaultGivenBetween0to5++;
+		else if (stoi(parsedCsv[i][4]) >= 5 && stoi(parsedCsv[i][4]) < 10 && parsedCsv[i][5] == "0")
+			noDefaultGivenBetween5to10++;
+		else if (stoi(parsedCsv[i][4]) >= 5 && stoi(parsedCsv[i][4]) < 10 && parsedCsv[i][5] == "1")
+			defaultGivenBetween5to10++;
+	}
+
+	cout << "\n================ ACTIVE LOANS ======================";
+	cout << "\nP(noDefault|0<x<5): " << (double)(noDefaultGivenBetween0to5 / between0to5) << "\n";
+	cout << "P(default|0<x<5): " << (double)(defaultGivenBetween0to5 / between0to5) << "\n";
+	giniBetween0to5 = 1 - (pow((double)(noDefaultGivenBetween0to5 / between0to5), 2) + pow((double)(defaultGivenBetween0to5 / between0to5), 2));
+	cout << "GINI(0<x<5): " << giniBetween0to5 << "\n";
+	cout << "\nP(noDefault|5<x<10): " << (double)(noDefaultGivenBetween5to10 / between5to10) << "\n";
+	cout << "P(default|5<x<10): " << (double)(defaultGivenBetween5to10 / between5to10) << "\n";
+	giniBetween5to10 = 1 - (pow((double)(noDefaultGivenBetween5to10 / between5to10), 2) + pow((double)(defaultGivenBetween5to10 / between5to10), 2));
+	cout << "GINI(5<x<10): " << giniBetween5to10 << "\n";
+
+	cout << "\nGINI(ActiveLoan): " << giniBetween0to5 * (double)(between0to5 / (between0to5 + between5to10)) + giniBetween5to10 * (double)(between5to10 / (between0to5 + between5to10)) << "\n";
 	return 0;
 }
