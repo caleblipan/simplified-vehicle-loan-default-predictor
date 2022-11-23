@@ -35,18 +35,33 @@ struct Tree *newNode(string data)
 	return tree;
 }
 
+// Print the decision tree
+void printTree(Tree *root)
+{
+	cout << "Decision Tree:"
+		 << "\n";
+	cout << "\t\t\t " << root->data << "\n";
+	cout << "\t\t\t "
+		 << "/ "
+		 << "\\"
+		 << "\n";
+
+	if (root->left)
+		cout << "\t\t" << root->left->data;
+}
+
 // Find GINI(AssetCost)
 double calculateGiniAssetCost(vector<vector<string>> &parsedCsv)
 {
 	double between50kAnd65k = 0;
 	double between65kAnd90k = 0;
-	for (int i = 0; i < 20; i++)
+	for (int i = 0; i < parsedCsv.size(); i++)
 	{
 		std::stringstream lineStream(parsedCsv[i][1]);
 		// Index 1 is asset cost
 		if (stoi(parsedCsv[i][1]) >= 50000 && stoi(parsedCsv[i][1]) < 65000)
 			between50kAnd65k++;
-		else if (stoi(parsedCsv[i][1]) >= 65000 && stoi(parsedCsv[i][1]) < 90000)
+		else if (stoi(parsedCsv[i][1]) >= 65000)
 			between65kAnd90k++;
 	}
 
@@ -54,29 +69,37 @@ double calculateGiniAssetCost(vector<vector<string>> &parsedCsv)
 	double defaultGivenBetween50kAnd65k = 0;
 	double noDefaultGivenBetween65kAnd90k = 0;
 	double defaultGivenBetween65kAnd90k = 0;
-	for (int i = 0; i < 20; i++)
+	for (int i = 0; i < parsedCsv.size(); i++)
 	{
 		// Index 5 is default boolean
 		if (stoi(parsedCsv[i][1]) >= 50000 && stoi(parsedCsv[i][1]) < 65000 && parsedCsv[i][5] == "0")
 			noDefaultGivenBetween50kAnd65k++;
 		else if (stoi(parsedCsv[i][1]) >= 50000 && stoi(parsedCsv[i][1]) < 65000 && parsedCsv[i][5] == "1")
 			defaultGivenBetween50kAnd65k++;
-		else if (stoi(parsedCsv[i][1]) >= 65000 && stoi(parsedCsv[i][1]) < 90000 && parsedCsv[i][5] == "0")
+		else if (stoi(parsedCsv[i][1]) >= 65000 && parsedCsv[i][5] == "0")
 			noDefaultGivenBetween65kAnd90k++;
-		else if (stoi(parsedCsv[i][1]) >= 65000 && stoi(parsedCsv[i][1]) < 90000 && parsedCsv[i][5] == "1")
+		else if (stoi(parsedCsv[i][1]) >= 65000 && parsedCsv[i][5] == "1")
 			defaultGivenBetween65kAnd90k++;
 	}
 
+	double giniBetween50kAnd65k = 0;
+	double giniBetween65kAnd90k = 0;
 	cout << "\n================ ASSET COST ======================";
-	cout << "\nP(noDefault|50k<x<65k): " << (double)(noDefaultGivenBetween50kAnd65k / between50kAnd65k) << "\n";
-	cout << "P(default|50k<x<65k): " << (double)(defaultGivenBetween50kAnd65k / between50kAnd65k) << "\n";
-	double giniBetween50kAnd65k = 1 - (pow((double)(noDefaultGivenBetween50kAnd65k / between50kAnd65k), 2) + pow((double)(defaultGivenBetween50kAnd65k / between50kAnd65k), 2));
-	cout << "GINI(50k<x<65k): " << giniBetween50kAnd65k << "\n";
+	if (between50kAnd65k != 0)
+	{
+		cout << "\nP(noDefault|50k<x<65k): " << (double)(noDefaultGivenBetween50kAnd65k / between50kAnd65k) << "\n";
+		cout << "P(default|50k<x<65k): " << (double)(defaultGivenBetween50kAnd65k / between50kAnd65k) << "\n";
+		giniBetween50kAnd65k = 1 - (pow((double)(noDefaultGivenBetween50kAnd65k / between50kAnd65k), 2) + pow((double)(defaultGivenBetween50kAnd65k / between50kAnd65k), 2));
+		cout << "GINI(50k<x<65k): " << giniBetween50kAnd65k << "\n";
+	}
 
-	cout << "\nP(noDefault|65k<x<90k): " << (double)(noDefaultGivenBetween65kAnd90k / between65kAnd90k) << "\n";
-	cout << "P(default|65<x<90k): " << (double)(defaultGivenBetween65kAnd90k / between65kAnd90k) << "\n";
-	double giniBetween65kAnd90k = 1 - (pow((double)(noDefaultGivenBetween65kAnd90k / between65kAnd90k), 2) + pow((double)(defaultGivenBetween65kAnd90k / between65kAnd90k), 2));
-	cout << "GINI(65k<x<90k): " << giniBetween65kAnd90k << "\n";
+	if (between65kAnd90k != 0)
+	{
+		cout << "\nP(noDefault|65k<x<90k): " << (double)(noDefaultGivenBetween65kAnd90k / between65kAnd90k) << "\n";
+		cout << "P(default|65<x<90k): " << (double)(defaultGivenBetween65kAnd90k / between65kAnd90k) << "\n";
+		giniBetween65kAnd90k = 1 - (pow((double)(noDefaultGivenBetween65kAnd90k / between65kAnd90k), 2) + pow((double)(defaultGivenBetween65kAnd90k / between65kAnd90k), 2));
+		cout << "GINI(65k<x<90k): " << giniBetween65kAnd90k << "\n";
+	}
 
 	double giniAssetCost = giniBetween50kAnd65k * (double)(between50kAnd65k / (between50kAnd65k + between65kAnd90k)) + giniBetween65kAnd90k * (double)(between65kAnd90k / (between50kAnd65k + between65kAnd90k));
 	cout << "\nGINI(AssetCost): " << giniAssetCost << "\n";
@@ -89,7 +112,7 @@ double calculateGiniEmploymentType(vector<vector<string>> &parsedCsv)
 {
 	double salaried = 0;
 	double selfEmployed = 0;
-	for (int i = 0; i < 20; i++)
+	for (int i = 0; i < parsedCsv.size(); i++)
 	{
 		// Index 2 is employment type
 		if (parsedCsv[i][2] == "Salaried")
@@ -102,7 +125,7 @@ double calculateGiniEmploymentType(vector<vector<string>> &parsedCsv)
 	double defaultGivenSalaried = 0;
 	double noDefaultGivenSelfEmployed = 0;
 	double defaultGivenSelfEmployed = 0;
-	for (int i = 0; i < 20; i++)
+	for (int i = 0; i < parsedCsv.size(); i++)
 	{
 		// Index 5 is default boolean
 		if (parsedCsv[i][2] == "Salaried" && parsedCsv[i][5] == "0")
@@ -125,7 +148,7 @@ double calculateGiniEmploymentType(vector<vector<string>> &parsedCsv)
 	double giniSelfEmployed = 1 - (pow((double)(noDefaultGivenSelfEmployed / selfEmployed), 2) + pow((double)(defaultGivenSelfEmployed / selfEmployed), 2));
 	cout << "GINI(SelfEmployed): " << giniSelfEmployed << "\n";
 
-	double giniEmploymentType = giniSalaried * (double)(salaried / (salaried + selfEmployed)) + giniSelfEmployed * (double)(selfEmployed / (salaried + selfEmployed));
+	double giniEmploymentType = giniSalaried * (salaried / (salaried + selfEmployed)) + giniSelfEmployed * (selfEmployed / (salaried + selfEmployed));
 	cout << "\nGINI(EmploymentType): " << giniEmploymentType << "\n";
 
 	return giniEmploymentType;
@@ -137,7 +160,7 @@ double calculateGiniTotalLoans(vector<vector<string>> &parsedCsv)
 	double between0to5 = 0;
 	double between5to10 = 0;
 	double between10to15 = 0;
-	for (int i = 0; i < 20; i++)
+	for (int i = 0; i < parsedCsv.size(); i++)
 	{
 		std::stringstream lineStream(parsedCsv[i][3]);
 		// Index 3 is total loans
@@ -155,7 +178,7 @@ double calculateGiniTotalLoans(vector<vector<string>> &parsedCsv)
 	double defaultGivenBetween5to10 = 0;
 	double noDefaultGivenBetween10to15 = 0;
 	double defaultGivenBetween10to15 = 0;
-	for (int i = 0; i < 20; i++)
+	for (int i = 0; i < parsedCsv.size(); i++)
 	{
 		// Index 5 is default boolean
 		if (stoi(parsedCsv[i][3]) >= 0 && stoi(parsedCsv[i][3]) < 5 && parsedCsv[i][5] == "0")
@@ -197,7 +220,7 @@ double calculateGiniActiveLoans(vector<vector<string>> &parsedCsv)
 {
 	double between0to5 = 0;
 	double between5to10 = 0;
-	for (int i = 0; i < 20; i++)
+	for (int i = 0; i < parsedCsv.size(); i++)
 	{
 		std::stringstream lineStream(parsedCsv[i][3]);
 		// Index 4 is active loans
@@ -211,7 +234,7 @@ double calculateGiniActiveLoans(vector<vector<string>> &parsedCsv)
 	double defaultGivenBetween0to5 = 0;
 	double noDefaultGivenBetween5to10 = 0;
 	double defaultGivenBetween5to10 = 0;
-	for (int i = 0; i < 20; i++)
+	for (int i = 0; i < parsedCsv.size(); i++)
 	{
 		// Index 5 is default boolean
 		if (stoi(parsedCsv[i][4]) >= 0 && stoi(parsedCsv[i][4]) < 5 && parsedCsv[i][5] == "0")
@@ -240,6 +263,20 @@ double calculateGiniActiveLoans(vector<vector<string>> &parsedCsv)
 	return giniActiveLoans;
 }
 
+// Print dataset
+void printDataset(vector<vector<string>> &parsedCsv)
+{
+	cout << "ID\tCost\tEmployment\tTotal\tActive\tDefault?\n";
+	for (auto row = parsedCsv.begin(); row != parsedCsv.end(); ++row)
+	{
+		for (auto col = row->begin(); col != row->end(); ++col)
+		{
+			cout << *col << "\t";
+		}
+		cout << "\n";
+	}
+}
+
 int main()
 {
 	cout << "======================= DATASET ========================\n";
@@ -264,20 +301,12 @@ int main()
 	}
 
 	// Print the dataset
-	cout << "ID\tCost\tEmployment\tTotal\tActive\tDefault?\n";
-	for (auto row = parsedCsv.begin(); row != parsedCsv.end(); ++row)
-	{
-		for (auto col = row->begin(); col != row->end(); ++col)
-		{
-			cout << *col << "\t";
-		}
-		cout << "\n";
-	}
+	printDataset(parsedCsv);
 
 	// Calculate main GINI
 	double noDefault = 0;
 	double defaulted = 0;
-	for (int i = 0; i < 20; i++)
+	for (int i = 0; i < parsedCsv.size(); i++)
 	{
 		// Index 2 is employment type
 		if (stoi(parsedCsv[i][5]) == 0)
@@ -287,7 +316,7 @@ int main()
 	}
 
 	cout << "\n================ DEFAULT RISK ======================\n";
-	double giniDefaultRisk = 1 - (pow((double)(noDefault / (noDefault + defaulted)), 2) + pow((double)(noDefault / (noDefault + defaulted)), 2));
+	double giniDefaultRisk = 1 - (pow((double)(noDefault / (noDefault + defaulted)), 2) + pow((double)(defaulted / (noDefault + defaulted)), 2));
 	cout << "GINI(DefaultRisk): " << giniDefaultRisk << "\n";
 
 	// Run the GINI calculations
@@ -326,13 +355,90 @@ int main()
 	{
 		struct Tree *root = newNode("AssetCost");
 
-		cout << "Decision Tree:"
-			 << "\n";
-		cout << "\t\t\t " << root->data << "\n";
-		cout << "\t\t\t "
-			 << "/ "
-			 << "\\"
-			 << "\n";
+		printTree(root);
+
+		// Parse the parsedCsv again into 2 different vectors
+		vector<vector<string>> between50kto65k;
+		vector<vector<string>> between65kto90k;
+		vector<string> row;
+
+		for (int i = 0; i < parsedCsv.size(); i++)
+		{
+			row.clear();
+			// Index 1 is asset cost
+			if (stoi(parsedCsv[i][1]) >= 50000 && stoi(parsedCsv[i][1]) < 65000)
+			{
+				for (int j = 0; j < 6; j++)
+					row.push_back(parsedCsv[i][j]);
+
+				between50kto65k.push_back(row);
+			}
+			else
+			{
+				for (int j = 0; j < 6; j++)
+					row.push_back(parsedCsv[i][j]);
+
+				between65kto90k.push_back(row);
+			}
+		}
+
+		// Reprint the new dataset
+		cout << "\n======================= NEW DATASETS ========================\n";
+		printDataset(between50kto65k);
+
+		cout << "\n";
+
+		printDataset(between65kto90k);
+
+		// Find the main gini for this dataset (assets between $50k and $65k)
+		double giniAssetCost = calculateGiniAssetCost(between50kto65k);
+
+		// Run the GINI calculations again
+		cout << "\n************ ASSETS BETWEEN $50K & $60K ***************";
+		double giniEmploymentType = calculateGiniEmploymentType(between50kto65k);
+		double giniTotalLoans = calculateGiniTotalLoans(between50kto65k);
+		double giniActiveLoans = calculateGiniActiveLoans(between50kto65k);
+
+		// Find the highest information gain for asset costs between 50k and 65k
+		cout << "\n================ INFORMATION GAIN ======================\n";
+		vector<double> infoGain;
+		double infoGainAssetCost = giniAssetCost - giniAssetCost;
+		infoGain.push_back(infoGainAssetCost);
+		cout << "IG(AssetCost): " << infoGainAssetCost << "\n";
+
+		double infoGainEmploymentType = giniAssetCost - giniEmploymentType;
+		infoGain.push_back(infoGainEmploymentType);
+		cout << "IG(EmploymentType): " << infoGainEmploymentType << "\n";
+
+		double infoGainTotalLoans = giniAssetCost - giniTotalLoans;
+		infoGain.push_back(infoGainTotalLoans);
+		cout << "IG(TotalLoans): " << infoGainTotalLoans << "\n";
+
+		double infoGainActiveLoans = giniAssetCost - giniActiveLoans;
+		infoGain.push_back(infoGainActiveLoans);
+		cout << "IG(ActiveLoans): " << infoGainActiveLoans << "\n\n";
+
+		double largestInfoGain = *max_element(infoGain.begin(), infoGain.end());
+		auto it = find(infoGain.begin(), infoGain.end(), largestInfoGain);
+		int index = it - infoGain.begin();
+
+		cout << "\nIndex: " << index << "\n";
+
+		if (index == 1)
+		{
+			root->left = newNode("EmploymentType");
+			printTree(root);
+		}
+		else if (index == 2)
+		{
+			root->left = newNode("TotalLoans");
+			printTree(root);
+		}
+		else
+		{
+			root->left = newNode("ActiveLoans");
+			printTree(root);
+		}
 	}
 	else if (index == 1)
 	{
