@@ -21,6 +21,7 @@ struct Tree
 	string data;
 	struct Tree *left;
 	struct Tree *right;
+	struct Tree *middle;
 };
 
 struct Tree *newNode(string data)
@@ -30,6 +31,7 @@ struct Tree *newNode(string data)
 	tree->data = data;
 
 	tree->left = NULL;
+	tree->middle = NULL;
 	tree->right = NULL;
 
 	return tree;
@@ -38,21 +40,73 @@ struct Tree *newNode(string data)
 // Print the decision tree
 void printTree(Tree *root)
 {
+	// First Row
 	cout << "Decision Tree:"
 		 << "\n";
 	cout << "\t\t\t " << root->data << "\n";
 	cout << "\t\t\t "
 		 << "/ "
-		 << "\\"
+		 << "\t\\"
 		 << "\n";
 
+	// Second Row
 	if (root->left)
+	{
 		cout << "\t\t" << root->left->data;
 
-	if (root->right)
-		cout << "  " << root->right->data;
+		if (root->right)
+		{
+			cout << "  " << root->right->data << "\n";
 
-	cout << "\n";
+			if (root->right->left)
+			{
+				cout << "\t\t\t" << root->right->left->data;
+				if (root->right->right)
+				{
+					cout << "    " << root->right->right->data << "\n";
+					if (root->right->right->left)
+					{
+						cout << "\t\t\t\t" << root->right->right->left->data;
+						if (root->right->right->right)
+						{
+							cout << "\t" << root->right->right->right->data << "\n";
+						}
+					}
+				}
+			}
+		}
+
+		// Third Row
+		if (root->left->left)
+		{
+			cout
+				<< "\t      /\t    |  \t\\"
+				<< "\n"
+				<< root->left->left->data;
+
+			if (root->left->middle)
+				cout << " " << root->left->middle->data;
+
+			if (root->left->right)
+			{
+				cout << " " << root->left->right->data;
+				if (root->left->right->left)
+				{
+					cout << "\n\t\t\t / \t \\";
+					cout << "\n\t\t\t"
+						 << root->left->right->left->data;
+					if (root->left->right->right)
+					{
+						cout << "  " << root->left->right->right->data;
+					}
+				}
+			}
+		}
+
+		cout << "\n";
+
+		cout << "\n";
+	}
 }
 
 // Find GINI(AssetCost)
@@ -230,7 +284,7 @@ double calculateGiniTotalLoans(vector<vector<string>> &parsedCsv)
 	{
 		cout << "\nP(noDefault|10<x<15): " << (double)(noDefaultGivenBetween10to15 / between10to15) << "\n";
 		cout << "P(default|10<x<15): " << (double)(defaultGivenBetween10to15 / between10to15) << "\n";
-		giniBetween10to15 = 1 - (pow((double)(noDefaultGivenBetween10to15 / between10to15), 2) + pow((double)(defaultGivenBetween0to5 / between0to5), 2));
+		giniBetween10to15 = 1 - (pow((double)(noDefaultGivenBetween10to15 / between10to15), 2) + pow((double)(defaultGivenBetween10to15 / between10to15), 2));
 		cout << "GINI(10<x<15): " << giniBetween10to15 << "\n";
 	}
 
@@ -508,6 +562,241 @@ int main()
 			printDataset(between5to10);
 			cout << "\n";
 			printDataset(between10to15);
+
+			// Run the GINI calculations again
+			/* BEGIN: TOTAL LOANS BETWEEN 0 & 5 */
+			// Find the main gini for this dataset
+			giniTotalLoans = calculateGiniTotalLoans(between0to5);
+			cout << "\n************ TOTAL LOANS BETWEEN 0 & 5 ***************";
+			giniEmploymentType = calculateGiniEmploymentType(between0to5);
+			giniActiveLoans = calculateGiniActiveLoans(between0to5);
+
+			// Find the highest information gain
+			cout << "\n================ INFORMATION GAIN ======================\n";
+			infoGain.clear();
+
+			infoGainEmploymentType = giniTotalLoans - giniEmploymentType;
+			infoGain.push_back(infoGainEmploymentType);
+			cout << "IG(EmploymentType): " << infoGainEmploymentType << "\n";
+
+			infoGainTotalLoans = giniTotalLoans - giniTotalLoans;
+			infoGain.push_back(infoGainTotalLoans);
+			cout << "IG(TotalLoans): " << infoGainTotalLoans << "\n";
+
+			infoGainActiveLoans = giniTotalLoans - giniActiveLoans;
+			infoGain.push_back(infoGainActiveLoans);
+			cout << "IG(ActiveLoans): " << infoGainActiveLoans << "\n\n";
+
+			largestInfoGain = *max_element(infoGain.begin(), infoGain.end());
+			it = find(infoGain.begin(), infoGain.end(), largestInfoGain);
+			index = it - infoGain.begin();
+
+			cout << "\nIndex: " << index << "\n";
+			if (index == 0)
+			{
+				root->left->left = newNode("EmploymentType");
+				printTree(root);
+
+				// Parse the between0to5 vector into 2 different vectors
+				vector<vector<string>> salaried;
+				vector<vector<string>> selfEmployed;
+
+				for (int i = 0; i < between0to5.size(); i++)
+				{
+					row.clear();
+					if (between0to5[i][2] == "Salaried")
+					{
+						for (int j = 0; j < 6; j++)
+							row.push_back(between0to5[i][j]);
+
+						salaried.push_back(row);
+					}
+					else if (between0to5[i][2] == "Self employed")
+					{
+						for (int j = 0; j < 6; j++)
+							row.push_back(between0to5[i][j]);
+
+						selfEmployed.push_back(row);
+					}
+				}
+
+				// Reprint the new dataset
+				cout << "\n======================= NEW DATASETS ========================\n";
+				printDataset(salaried);
+				cout << "\n";
+				printDataset(selfEmployed);
+
+				// Run the GINI calculations again
+				/* BEGIN: Salaried */
+				// Find the main gini for this dataset
+				giniEmploymentType = calculateGiniEmploymentType(salaried);
+				cout << "\n************ EMPLOYMENT: SALARIES *****************";
+				giniTotalLoans = calculateGiniTotalLoans(salaried);
+				giniActiveLoans = calculateGiniActiveLoans(salaried);
+
+				if (giniEmploymentType != 0)
+				{
+					// Find the highest information gain
+					cout << "\n================ INFORMATION GAIN ======================\n";
+					infoGain.clear();
+
+					infoGainTotalLoans = giniTotalLoans - giniTotalLoans;
+					infoGain.push_back(infoGainTotalLoans);
+					cout << "IG(TotalLoans): " << infoGainTotalLoans << "\n";
+
+					infoGainActiveLoans = giniTotalLoans - giniActiveLoans;
+					infoGain.push_back(infoGainActiveLoans);
+					cout << "IG(ActiveLoans): " << infoGainActiveLoans << "\n\n";
+
+					largestInfoGain = *max_element(infoGain.begin(), infoGain.end());
+					it = find(infoGain.begin(), infoGain.end(), largestInfoGain);
+					index = it - infoGain.begin();
+
+					cout << "\nIndex123: " << index << "\n";
+					printTree(root);
+				}
+				else
+				{
+
+					int index = stoi(between5to10[0][5]);
+					root->left->middle = index == 1 ? newNode("DEFAULT") : newNode("NO DEFAULT");
+
+					printTree(root);
+				}
+
+				/* END: SALARIED */
+			}
+			/* END: TOTAL LOANS BETWEEN 0 & 5 */
+
+			/* BEGIN: TOTAL LOANS BETWEEN 5 & 10 */
+			giniTotalLoans = calculateGiniTotalLoans(between5to10);
+
+			cout << "\n************ TOTAL LOANS BETWEEN 5 & 10 ***************\n";
+			if (giniTotalLoans != 0)
+			{
+				giniEmploymentType = calculateGiniEmploymentType(between5to10);
+				giniActiveLoans = calculateGiniActiveLoans(between5to10);
+
+				// Find the highest information gain for asset costs between 50k and 65k
+				cout << "\n================ INFORMATION GAIN ======================\n";
+				infoGain.clear();
+
+				infoGainEmploymentType = giniTotalLoans - giniEmploymentType;
+				infoGain.push_back(infoGainEmploymentType);
+				cout << "IG(EmploymentType): " << infoGainEmploymentType << "\n";
+
+				infoGainTotalLoans = giniTotalLoans - giniTotalLoans;
+				infoGain.push_back(infoGainTotalLoans);
+				cout << "IG(TotalLoans): " << infoGainTotalLoans << "\n";
+
+				infoGainActiveLoans = giniTotalLoans - giniActiveLoans;
+				infoGain.push_back(infoGainActiveLoans);
+				cout << "IG(ActiveLoans): " << infoGainActiveLoans << "\n\n";
+
+				largestInfoGain = *max_element(infoGain.begin(), infoGain.end());
+				it = find(infoGain.begin(), infoGain.end(), largestInfoGain);
+				index = it - infoGain.begin();
+
+				cout << "\nIndex: " << index << "\n";
+
+				printTree(root);
+			}
+			else
+			{
+				int index = stoi(between5to10[0][5]);
+				root->left->middle = index == 1 ? newNode("DEFAULT") : newNode("NO DEFAULT");
+
+				printTree(root);
+			}
+			/* END: TOTAL LOANS BETWEEN 5 & 10*/
+
+			/* BEGIN: TOTAL LOANS BETWEEN 10 & 15*/
+			giniTotalLoans = calculateGiniTotalLoans(between10to15);
+
+			if (giniTotalLoans != 0)
+			{
+				cout << "\n************ TOTAL LOANS BETWEEN 10 & 15 ***************";
+				giniEmploymentType = calculateGiniEmploymentType(between10to15);
+				giniActiveLoans = calculateGiniActiveLoans(between10to15);
+
+				// Find the highest information gain for asset costs between 50k and 65k
+				cout << "\n================ INFORMATION GAIN ======================\n";
+				infoGain.clear();
+
+				infoGainEmploymentType = giniTotalLoans - giniEmploymentType;
+				infoGain.push_back(infoGainEmploymentType);
+				cout << "IG(EmploymentType): " << infoGainEmploymentType << "\n";
+
+				infoGainActiveLoans = giniTotalLoans - giniActiveLoans;
+				infoGain.push_back(infoGainActiveLoans);
+				cout << "IG(ActiveLoans): " << infoGainActiveLoans << "\n\n";
+
+				largestInfoGain = *max_element(infoGain.begin(), infoGain.end());
+				it = find(infoGain.begin(), infoGain.end(), largestInfoGain);
+				index = it - infoGain.begin();
+
+				cout << "\nIndex: " << index << "\n";
+
+				if (index == 0)
+				{
+					root->left->right = newNode("EmploymentType");
+
+					// Parse the between10to15 vector into 2 different vectors
+					vector<vector<string>> salaried;
+					vector<vector<string>> selfEmployed;
+
+					for (int i = 0; i < between10to15.size(); i++)
+					{
+						row.clear();
+						if (between10to15[i][2] == "Salaried")
+						{
+							for (int j = 0; j < 6; j++)
+								row.push_back(between10to15[i][j]);
+
+							salaried.push_back(row);
+						}
+						else if (between10to15[i][2] == "Self employed")
+						{
+							for (int j = 0; j < 6; j++)
+								row.push_back(between10to15[i][j]);
+
+							selfEmployed.push_back(row);
+						}
+					}
+
+					// Reprint the new dataset
+					cout << "\n======================= NEW DATASETS ========================\n";
+					printDataset(salaried);
+					cout << "\n";
+					printDataset(selfEmployed);
+
+					if (salaried.size() == 1)
+					{
+						int index = stoi(salaried[0][5]);
+						root->left->right->left = index == 1 ? newNode("DEFAULT") : newNode("NO DEFAULT");
+					}
+					if (selfEmployed.size() == 1)
+					{
+
+						int index = stoi(selfEmployed[0][5]);
+						root->left->right->right = index == 1 ? newNode("DEFAULT") : newNode("NO DEFAULT");
+					}
+				}
+				else
+				{
+					root->left->right = newNode("Active Loans");
+				}
+
+				printTree(root);
+			}
+			else
+			{
+				int index = stoi(between10to15[0][5]);
+				root->left->right = index == 1 ? newNode("DEFAULT") : newNode("NO DEFAULT");
+
+				printTree(root);
+			}
+			/* END: TOTAL LOANS BETWEEN 10 & 15*/
 		}
 		else
 		{
@@ -551,6 +840,139 @@ int main()
 		{
 			root->right = newNode("EmploymentType");
 			printTree(root);
+
+			// Parse the betwee65kto90k into 2 different vectors
+			vector<vector<string>> salaried;
+			vector<vector<string>> selfEmployed;
+			vector<string> row;
+
+			for (int i = 0; i < between65kto90k.size(); i++)
+			{
+				row.clear();
+				// Index 1 is asset cost
+				if (stoi(between65kto90k[i][1]) >= 65000)
+				{
+					if (between65kto90k[i][2] == "Salaried")
+					{
+						for (int j = 0; j < 6; j++)
+							row.push_back(between65kto90k[i][j]);
+
+						salaried.push_back(row);
+					}
+					else
+					{
+						for (int j = 0; j < 6; j++)
+							row.push_back(between65kto90k[i][j]);
+
+						selfEmployed.push_back(row);
+					}
+				}
+			}
+
+			// Reprint the new dataset
+			cout << "\n======================= NEW DATASETS ========================\n";
+			printDataset(salaried);
+			cout << "\n";
+			printDataset(selfEmployed);
+
+			// If the vector sizes are somehow 0:
+			if (salaried.size() == 1)
+			{
+				int index = stoi(salaried[0][5]);
+				root->right->left = index == 1 ? newNode("DEFAULT") : newNode("NO DEFAULT");
+				printTree(root);
+			}
+			if (selfEmployed.size() == 1)
+			{
+				int index = stoi(selfEmployed[0][5]);
+				root->right->right = index == 1 ? newNode("DEFAULT") : newNode("NO DEFAULT");
+				printTree(root);
+			}
+
+			// Find the main gini for this dataset (assets between $50k and $65k)
+			double giniEmploymentType = calculateGiniEmploymentType(selfEmployed);
+
+			// Run the GINI calculations again
+			/* BEGIN: selfEmployed */
+			cout << "\n************ EMPLOYMENT: SELF EMPLOYED ***************";
+			double giniTotalLoans = calculateGiniTotalLoans(selfEmployed);
+			double giniActiveLoans = calculateGiniActiveLoans(selfEmployed);
+
+			// Find the highest information gain for asset costs between 50k and 65k
+			cout << "\n================ INFORMATION GAIN ======================\n";
+			double infoGainTotalLoans = giniEmploymentType - giniTotalLoans;
+			infoGain.push_back(infoGainTotalLoans);
+			cout << "IG(TotalLoans): " << infoGainTotalLoans << "\n";
+
+			double infoGainActiveLoans = giniEmploymentType - giniActiveLoans;
+			infoGain.push_back(infoGainActiveLoans);
+			cout << "IG(ActiveLoans): " << infoGainActiveLoans << "\n\n";
+
+			double largestInfoGain = *max_element(infoGain.begin(), infoGain.end());
+			auto it = find(infoGain.begin(), infoGain.end(), largestInfoGain);
+			int index = it - infoGain.begin();
+
+			cout << "\nIndex: " << index << "\n";
+			/* END: SelfEmployed */
+
+			if (index == 4)
+			{
+				root->right->right = newNode("TotalLoans");
+				// Parse the parsedCsv again into 2 different vectors
+				vector<vector<string>> between0to5;
+				vector<vector<string>> between5to10;
+				vector<string> row;
+
+				for (int i = 0; i < selfEmployed.size(); i++)
+				{
+					row.clear();
+					// Index 1 is asset cost
+					if (stoi(selfEmployed[i][3]) >= 0 && stoi(selfEmployed[i][3]) <= 5)
+					{
+						for (int j = 0; j < 6; j++)
+							row.push_back(selfEmployed[i][j]);
+
+						between0to5.push_back(row);
+					}
+					else
+					{
+						for (int j = 0; j < 6; j++)
+							row.push_back(selfEmployed[i][j]);
+
+						between5to10.push_back(row);
+					}
+				}
+
+				// Reprint the new dataset
+				cout << "\n======================= NEW DATASETS ========================\n";
+				printDataset(between0to5);
+				cout << "\n";
+				printDataset(between5to10);
+
+				// Run basic checks
+				// If the vector sizes are somehow 0:
+				if (between5to10.size() == 1)
+				{
+					int index = stoi(between5to10[0][5]);
+					root->right->right->left = index == 1 ? newNode("DEFAULT") : newNode("NO DEFAULT");
+					printTree(root);
+				}
+				if (between0to5.size() == 1)
+				{
+					int index = stoi(between0to5[0][5]);
+					root->right->right->right = index == 1 ? newNode("DEFAULT") : newNode("NO DEFAULT");
+					printTree(root);
+				}
+
+				double giniTotalLoans = calculateGiniEmploymentType(between5to10);
+
+				if (giniTotalLoans == 0)
+				{
+					int index = stoi(between0to5[0][5]);
+					root->right->right->right = index == 1 ? newNode("DEFAULT") : newNode("NO DEFAULT");
+					printTree(root);
+				}
+			}
 		}
 		else if (index == 2)
 		{
