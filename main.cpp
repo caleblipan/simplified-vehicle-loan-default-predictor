@@ -50,7 +50,9 @@ void printTree(Tree *root)
 		cout << "\t\t" << root->left->data;
 
 	if (root->right)
-		cout << "\t\t\t\t" << root->right->data;
+		cout << "  " << root->right->data;
+
+	cout << "\n";
 }
 
 // Find GINI(AssetCost)
@@ -141,15 +143,23 @@ double calculateGiniEmploymentType(vector<vector<string>> &parsedCsv)
 			defaultGivenSelfEmployed++;
 	}
 
+	double giniSalaried = 0;
+	double giniSelfEmployed = 0;
 	cout << "\n================ EMPLOYMENT TYPE ======================";
-	cout << "\nP(noDefault|Salaried): " << (double)(noDefaultGivenSalaried / salaried) << "\n";
-	cout << "P(default|Salaried): " << (double)(defaultGivenSalaried / salaried) << "\n";
-	double giniSalaried = 1 - (pow((double)(noDefaultGivenSalaried / salaried), 2) + pow((double)(defaultGivenSalaried / salaried), 2));
-	cout << "GINI(Salaried): " << giniSalaried << "\n";
-	cout << "\nP(noDefault|SelfEmployed): " << (double)(noDefaultGivenSelfEmployed / selfEmployed) << "\n";
-	cout << "P(default|SelfEmployed): " << (double)(defaultGivenSelfEmployed / selfEmployed) << "\n";
-	double giniSelfEmployed = 1 - (pow((double)(noDefaultGivenSelfEmployed / selfEmployed), 2) + pow((double)(defaultGivenSelfEmployed / selfEmployed), 2));
-	cout << "GINI(SelfEmployed): " << giniSelfEmployed << "\n";
+	if (salaried != 0)
+	{
+		cout << "\nP(noDefault|Salaried): " << (double)(noDefaultGivenSalaried / salaried) << "\n";
+		cout << "P(default|Salaried): " << (double)(defaultGivenSalaried / salaried) << "\n";
+		giniSalaried = 1 - (pow((double)(noDefaultGivenSalaried / salaried), 2) + pow((double)(defaultGivenSalaried / salaried), 2));
+		cout << "GINI(Salaried): " << giniSalaried << "\n";
+	}
+	if (selfEmployed != 0)
+	{
+		cout << "\nP(noDefault|SelfEmployed): " << (double)(noDefaultGivenSelfEmployed / selfEmployed) << "\n";
+		cout << "P(default|SelfEmployed): " << (double)(defaultGivenSelfEmployed / selfEmployed) << "\n";
+		giniSelfEmployed = 1 - (pow((double)(noDefaultGivenSelfEmployed / selfEmployed), 2) + pow((double)(defaultGivenSelfEmployed / selfEmployed), 2));
+		cout << "GINI(SelfEmployed): " << giniSelfEmployed << "\n";
+	}
 
 	double giniEmploymentType = giniSalaried * (salaried / (salaried + selfEmployed)) + giniSelfEmployed * (selfEmployed / (salaried + selfEmployed));
 	cout << "\nGINI(EmploymentType): " << giniEmploymentType << "\n";
@@ -198,19 +208,31 @@ double calculateGiniTotalLoans(vector<vector<string>> &parsedCsv)
 			defaultGivenBetween10to15++;
 	}
 
+	double giniBetween0to5 = 0;
+	double giniBetween5to10 = 0;
+	double giniBetween10to15 = 0;
 	cout << "\n================ TOTAL LOANS ======================";
-	cout << "\nP(noDefault|0<x<5): " << (double)(noDefaultGivenBetween0to5 / between0to5) << "\n";
-	cout << "P(default|0<x<5): " << (double)(defaultGivenBetween0to5 / between0to5) << "\n";
-	double giniBetween0to5 = 1 - (pow((double)(noDefaultGivenBetween0to5 / between0to5), 2) + pow((double)(defaultGivenBetween0to5 / between0to5), 2));
-	cout << "GINI(0<x<5): " << giniBetween0to5 << "\n";
-	cout << "\nP(noDefault|5<x<10): " << (double)(noDefaultGivenBetween5to10 / between5to10) << "\n";
-	cout << "P(default|5<x<10): " << (double)(defaultGivenBetween5to10 / between5to10) << "\n";
-	double giniBetween5to10 = 1 - (pow((double)(noDefaultGivenBetween5to10 / between5to10), 2) + pow((double)(defaultGivenBetween5to10 / between5to10), 2));
-	cout << "GINI(SelfEmployed): " << giniBetween5to10 << "\n";
-	cout << "\nP(noDefault|10<x<15): " << (double)(noDefaultGivenBetween10to15 / between10to15) << "\n";
-	cout << "P(default|10<x<15): " << (double)(defaultGivenBetween10to15 / between10to15) << "\n";
-	double giniBetween10to15 = 1 - (pow((double)(noDefaultGivenBetween10to15 / between10to15), 2) + pow((double)(defaultGivenBetween0to5 / between0to5), 2));
-	cout << "GINI(10<x<15): " << giniBetween10to15 << "\n";
+	if (between0to5 != 0)
+	{
+		cout << "\nP(noDefault|0<x<5): " << (double)(noDefaultGivenBetween0to5 / between0to5) << "\n";
+		cout << "P(default|0<x<5): " << (double)(defaultGivenBetween0to5 / between0to5) << "\n";
+		giniBetween0to5 = 1 - (pow((double)(noDefaultGivenBetween0to5 / between0to5), 2) + pow((double)(defaultGivenBetween0to5 / between0to5), 2));
+		cout << "GINI(0<x<5): " << giniBetween0to5 << "\n";
+	}
+	if (between5to10 != 0)
+	{
+		cout << "\nP(noDefault|5<x<10): " << (double)(noDefaultGivenBetween5to10 / between5to10) << "\n";
+		cout << "P(default|5<x<10): " << (double)(defaultGivenBetween5to10 / between5to10) << "\n";
+		giniBetween5to10 = 1 - (pow((double)(noDefaultGivenBetween5to10 / between5to10), 2) + pow((double)(defaultGivenBetween5to10 / between5to10), 2));
+		cout << "GINI(SelfEmployed): " << giniBetween5to10 << "\n";
+	}
+	if (between10to15 != 0)
+	{
+		cout << "\nP(noDefault|10<x<15): " << (double)(noDefaultGivenBetween10to15 / between10to15) << "\n";
+		cout << "P(default|10<x<15): " << (double)(defaultGivenBetween10to15 / between10to15) << "\n";
+		giniBetween10to15 = 1 - (pow((double)(noDefaultGivenBetween10to15 / between10to15), 2) + pow((double)(defaultGivenBetween0to5 / between0to5), 2));
+		cout << "GINI(10<x<15): " << giniBetween10to15 << "\n";
+	}
 
 	double giniTotalLoans = giniBetween0to5 * (double)(between0to5 / (between0to5 + between5to10 + between10to15)) + giniBetween5to10 * (double)(between5to10 / (between0to5 + between5to10 + between10to15)) + giniBetween10to15 * (double)(between10to15 / (between0to5 + between5to10 + between10to15));
 	cout << "\nGINI(TotalLoan): " << giniTotalLoans << "\n";
@@ -250,15 +272,23 @@ double calculateGiniActiveLoans(vector<vector<string>> &parsedCsv)
 			defaultGivenBetween5to10++;
 	}
 
+	double giniBetween0to5 = 0;
+	double giniBetween5to10 = 0;
 	cout << "\n================ ACTIVE LOANS ======================";
-	cout << "\nP(noDefault|0<x<5): " << (double)(noDefaultGivenBetween0to5 / between0to5) << "\n";
-	cout << "P(default|0<x<5): " << (double)(defaultGivenBetween0to5 / between0to5) << "\n";
-	double giniBetween0to5 = 1 - (pow((double)(noDefaultGivenBetween0to5 / between0to5), 2) + pow((double)(defaultGivenBetween0to5 / between0to5), 2));
-	cout << "GINI(0<x<5): " << giniBetween0to5 << "\n";
-	cout << "\nP(noDefault|5<x<10): " << (double)(noDefaultGivenBetween5to10 / between5to10) << "\n";
-	cout << "P(default|5<x<10): " << (double)(defaultGivenBetween5to10 / between5to10) << "\n";
-	double giniBetween5to10 = 1 - (pow((double)(noDefaultGivenBetween5to10 / between5to10), 2) + pow((double)(defaultGivenBetween5to10 / between5to10), 2));
-	cout << "GINI(5<x<10): " << giniBetween5to10 << "\n";
+	if (between0to5 != 0)
+	{
+		cout << "\nP(noDefault|0<x<5): " << (double)(noDefaultGivenBetween0to5 / between0to5) << "\n";
+		cout << "P(default|0<x<5): " << (double)(defaultGivenBetween0to5 / between0to5) << "\n";
+		giniBetween0to5 = 1 - (pow((double)(noDefaultGivenBetween0to5 / between0to5), 2) + pow((double)(defaultGivenBetween0to5 / between0to5), 2));
+		cout << "GINI(0<x<5): " << giniBetween0to5 << "\n";
+	}
+	if (between5to10 != 0)
+	{
+		cout << "\nP(noDefault|5<x<10): " << (double)(noDefaultGivenBetween5to10 / between5to10) << "\n";
+		cout << "P(default|5<x<10): " << (double)(defaultGivenBetween5to10 / between5to10) << "\n";
+		giniBetween5to10 = 1 - (pow((double)(noDefaultGivenBetween5to10 / between5to10), 2) + pow((double)(defaultGivenBetween5to10 / between5to10), 2));
+		cout << "GINI(5<x<10): " << giniBetween5to10 << "\n";
+	}
 
 	double giniActiveLoans = giniBetween0to5 * (double)(between0to5 / (between0to5 + between5to10)) + giniBetween5to10 * (double)(between5to10 / (between0to5 + between5to10));
 	cout << "\nGINI(ActiveLoan): " << giniActiveLoans << "\n";
@@ -357,7 +387,6 @@ int main()
 	if (index == 0)
 	{
 		struct Tree *root = newNode("AssetCost");
-
 		printTree(root);
 
 		// Parse the parsedCsv again into 2 different vectors
@@ -388,9 +417,7 @@ int main()
 		// Reprint the new dataset
 		cout << "\n======================= NEW DATASETS ========================\n";
 		printDataset(between50kto65k);
-
 		cout << "\n";
-
 		printDataset(between65kto90k);
 
 		// Find the main gini for this dataset (assets between $50k and $65k)
@@ -437,6 +464,50 @@ int main()
 		{
 			root->left = newNode("TotalLoans");
 			printTree(root);
+
+			// Parse the parsedCsv again into 2 different vectors
+			vector<vector<string>> between0to5;
+			vector<vector<string>> between5to10;
+			vector<vector<string>> between10to15;
+			vector<string> row;
+
+			for (int i = 0; i < parsedCsv.size(); i++)
+			{
+				row.clear();
+				// Index 3 is asset cost
+				if (stoi(parsedCsv[i][1]) >= 50000 && stoi(parsedCsv[i][1]) < 65000)
+				{
+					if (stoi(parsedCsv[i][3]) >= 0 && stoi(parsedCsv[i][3]) < 5)
+					{
+						for (int j = 0; j < 6; j++)
+							row.push_back(parsedCsv[i][j]);
+
+						between0to5.push_back(row);
+					}
+					else if (stoi(parsedCsv[i][3]) >= 5 && stoi(parsedCsv[i][3]) < 10)
+					{
+						for (int j = 0; j < 6; j++)
+							row.push_back(parsedCsv[i][j]);
+
+						between5to10.push_back(row);
+					}
+					else
+					{
+						for (int j = 0; j < 6; j++)
+							row.push_back(parsedCsv[i][j]);
+
+						between10to15.push_back(row);
+					}
+				}
+			}
+
+			// Reprint the new dataset
+			cout << "\n======================= NEW DATASETS ========================\n";
+			printDataset(between0to5);
+			cout << "\n";
+			printDataset(between5to10);
+			cout << "\n";
+			printDataset(between10to15);
 		}
 		else
 		{
