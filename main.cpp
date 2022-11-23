@@ -48,6 +48,9 @@ void printTree(Tree *root)
 
 	if (root->left)
 		cout << "\t\t" << root->left->data;
+
+	if (root->right)
+		cout << "\t\t\t\t" << root->right->data;
 }
 
 // Find GINI(AssetCost)
@@ -394,7 +397,8 @@ int main()
 		double giniAssetCost = calculateGiniAssetCost(between50kto65k);
 
 		// Run the GINI calculations again
-		cout << "\n************ ASSETS BETWEEN $50K & $60K ***************";
+		/* BEGIN: ASSETS BETWEEN $50K & $65k */
+		cout << "\n************ ASSETS BETWEEN $50K & $65K ***************";
 		double giniEmploymentType = calculateGiniEmploymentType(between50kto65k);
 		double giniTotalLoans = calculateGiniTotalLoans(between50kto65k);
 		double giniActiveLoans = calculateGiniActiveLoans(between50kto65k);
@@ -439,42 +443,69 @@ int main()
 			root->left = newNode("ActiveLoans");
 			printTree(root);
 		}
+		/* END: ASSETS BETWEEN $50K & $65K */
+
+		/* BEGIN: ASSETS BETWEEN $65k & 90K */
+		cout << "\n************ ASSETS BETWEEN $65K & $90K ***************";
+		giniEmploymentType = calculateGiniEmploymentType(between65kto90k);
+		giniTotalLoans = calculateGiniTotalLoans(between65kto90k);
+		giniActiveLoans = calculateGiniActiveLoans(between65kto90k);
+
+		// Find the highest information gain for asset costs between 50k and 65k
+		cout << "\n================ INFORMATION GAIN ======================\n";
+		infoGain.clear();
+		infoGainAssetCost = giniAssetCost - giniAssetCost;
+		infoGain.push_back(infoGainAssetCost);
+		cout << "IG(AssetCost): " << infoGainAssetCost << "\n";
+
+		infoGainEmploymentType = giniAssetCost - giniEmploymentType;
+		infoGain.push_back(infoGainEmploymentType);
+		cout << "IG(EmploymentType): " << infoGainEmploymentType << "\n";
+
+		infoGainTotalLoans = giniAssetCost - giniTotalLoans;
+		infoGain.push_back(infoGainTotalLoans);
+		cout << "IG(TotalLoans): " << infoGainTotalLoans << "\n";
+
+		infoGainActiveLoans = giniAssetCost - giniActiveLoans;
+		infoGain.push_back(infoGainActiveLoans);
+		cout << "IG(ActiveLoans): " << infoGainActiveLoans << "\n\n";
+
+		largestInfoGain = *max_element(infoGain.begin(), infoGain.end());
+		it = find(infoGain.begin(), infoGain.end(), largestInfoGain);
+		index = it - infoGain.begin();
+
+		cout << "\nIndex: " << index << "\n";
+
+		if (index == 1)
+		{
+			root->right = newNode("EmploymentType");
+			printTree(root);
+		}
+		else if (index == 2)
+		{
+			root->right = newNode("TotalLoans");
+			printTree(root);
+		}
+		else
+		{
+			root->right = newNode("ActiveLoans");
+			printTree(root);
+		}
 	}
 	else if (index == 1)
 	{
 		struct Tree *root = newNode("EmploymentType");
-
-		cout << "Decision Tree:"
-			 << "\n";
-		cout << "\t\t\t " << root->data << "\n";
-		cout << "\t\t\t "
-			 << "/ "
-			 << "\\"
-			 << "\n";
+		printTree(root);
 	}
 	else if (index == 2)
 	{
 		struct Tree *root = newNode("TotalLoans");
-
-		cout << "Decision Tree:"
-			 << "\n";
-		cout << "\t\t\t " << root->data << "\n";
-		cout << "\t\t\t "
-			 << "/ "
-			 << "\\"
-			 << "\n";
+		printTree(root);
 	}
 	else
 	{
 		struct Tree *root = newNode("ActiveLoans");
-
-		cout << "Decision Tree:"
-			 << "\n";
-		cout << "\t\t\t " << root->data << "\n";
-		cout << "\t\t\t "
-			 << "/ "
-			 << "\\"
-			 << "\n";
+		printTree(root);
 	}
 
 	return 0;
